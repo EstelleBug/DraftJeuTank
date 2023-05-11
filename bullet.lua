@@ -1,9 +1,11 @@
+local map = require("map")
 function NewBullet(x, y, angle, speed, owner)
     local bullet = {}
     bullet.x = x
     bullet.y = y
     bullet.angle = angle
-    bullet.speed = speed
+    bullet.speedX = speed
+    bullet.speedY = speed
     bullet.owner = owner
     bullet.free = false
     bullet.radius = 5
@@ -14,16 +16,44 @@ function NewBullet(x, y, angle, speed, owner)
     --bullet.height = bullet.imageHero:getHeight()
 
     function bullet.Update(dt)
-        bullet.x = bullet.x + math.cos(bullet.angle) * bullet.speed * dt
-        bullet.y = bullet.y + math.sin(bullet.angle) * bullet.speed * dt
+        bullet.x = bullet.x + math.cos(bullet.angle) * bullet.speedX * dt
+        bullet.y = bullet.y + math.sin(bullet.angle) * bullet.speedY * dt
+        --bullet.oldX = bullet.x
+        --bullet.oldY = bullet.y
 
-        if bullet.x < 0 or bullet.y < 0 or bullet.x > love.graphics.getWidth() or bullet.y > love.graphics.getHeight() then
-            bullet.speed = bullet.speed * -1
+        if map.CheckCollisionObstacleWithBullet(bullet.x, bullet.y, bullet.radius, bullet.speedX, bullet.speedY) then
             bullet.collisionCount = bullet.collisionCount + 1
             print(bullet.collisionCount)
-            if bullet.collisionCount == 3 then
-                bullet.free = true
-            end
+            --bullet.x = bullet.oldX
+            --bullet.y = bullet.oldy
+            bullet.speedX = map.bounceX
+            bullet.speedY = map.bounceY
+        end
+
+        local TILE_WIDTH, TILE_HEIGHT = map.GetTileSize()
+
+        if bullet.x < TILE_WIDTH then
+            bullet.collisionCount = bullet.collisionCount + 1
+            bullet.speedX = bullet.speedX * -1
+            print(bullet.collisionCount)
+        end
+        if bullet.y < TILE_HEIGHT then
+            bullet.collisionCount = bullet.collisionCount + 1
+            bullet.speedY = bullet.speedY * -1
+            print(bullet.collisionCount)
+        end
+        if bullet.x > love.graphics.getWidth() - bullet.radius - TILE_WIDTH then
+            bullet.collisionCount = bullet.collisionCount + 1
+            bullet.speedX = bullet.speedX * -1
+            print(bullet.collisionCount)
+        end
+        if bullet.y > love.graphics.getHeight() - bullet.radius - TILE_HEIGHT then
+            bullet.collisionCount = bullet.collisionCount + 1
+            bullet.speedY = bullet.speedY * -1
+            print(bullet.collisionCount)
+        end
+        if bullet.collisionCount == 3 then
+            bullet.free = true
         end
     end
 

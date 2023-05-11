@@ -7,16 +7,17 @@ local positionX = 0
 local positionY = 0
 local angle = 0
 local angleBarrel = 0
-local rotationSpeed = 2
-local moveSpeed = 100
+local rotationSpeed = 0
+local moveSpeed = 0
 local imageBody = love.graphics.newImage("images/tankBody_blue_outline.png")
 local imageBarrel1 = love.graphics.newImage("images/tankBlue_barrel2_outline.png")
 local imageBarrel2 = love.graphics.newImage("images/tankBlue_barrel2.png")
 --local imageBodyWidth = imageBody:getWidth()
 --local imageBodyHeight = imageBody:getHeight()
-local radius = 30
+local radius = 25
 local shootSpeed = 300
 local owner = "hero"
+local nbrLifeHero = 0
 
 function hero.Init(x, y)
     positionX = x
@@ -24,13 +25,14 @@ function hero.Init(x, y)
     angle = 0
     rotationSpeed = 2
     moveSpeed = 100
+    nbrLifeHero = 5
 end
 
 function hero.Update(dt)
     -- Hero command's
-
+    local oldPositionX = positionX
+    local oldPositionY = positionY
     angleBarrel = math.atan2(love.mouse.getY() - positionY, love.mouse.getX() - positionX)
-
 
     if love.keyboard.isDown("left") then
         angle = angle - rotationSpeed * dt
@@ -43,25 +45,10 @@ function hero.Update(dt)
         local vy = math.sin(angle) * moveSpeed
         positionX = positionX + vx * dt
         positionY = positionY + vy * dt
-        if map.CollisionHero == true then
-            print("collisions !2")
-            positionX = positionX - vx * dt - 0.2
-            positionY = positionY - vy * dt - 0.2
-            map.CollisionHero = false
-        end
     end
-
-    -- Keep my hero on screen
-    if positionX + radius <= 0 then
-        positionX = love.graphics.getWidth() + radius
-    elseif positionX - radius >= love.graphics.getWidth() then
-        positionX = 0 - radius
-    end
-
-    if positionY + radius <= 0 then
-        positionY = love.graphics.getHeight() + radius
-    elseif positionY - radius >= love.graphics.getHeight() then
-        positionY = 0 - radius
+    if map.CheckCollisionObstacle(positionX, positionY, radius) then
+        positionX = oldPositionX
+        positionY = oldPositionY
     end
 end
 
@@ -96,6 +83,10 @@ function hero.Shoot()
     bulletManager.NewBullet(positionX, positionY, angleBarrel, shootSpeed, owner)
 end
 
+function hero.HeroGotShot()
+    nbrLifeHero = nbrLifeHero - 1
+end
+
 function hero.GetPosition()
     return positionX, positionY
 end
@@ -103,6 +94,10 @@ end
 function hero.GetSize()
     return radius
     --return imageBodyWidth, imageBodyHeight
+end
+
+function hero.GetNbrLife()
+    return nbrLifeHero
 end
 
 return hero
