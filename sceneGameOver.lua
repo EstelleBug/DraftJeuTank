@@ -26,7 +26,7 @@ function sceneGameOver.Draw()
         end
         love.graphics.print(option, 100, 400 + i * 50)
     end
-    love.graphics.setFont(font1)
+    love.graphics.setFont(font2)
     love.graphics.setColor(255, 255, 255)
 end
 

@@ -1,14 +1,13 @@
 require("utils")
-local map = require "map"
 
 -- Load enemy images and sound effects
-local imageBody = love.graphics.newImage("images/tankBody_red_outline.png")
-local imageBarrel1 = love.graphics.newImage("images/tankRed_barrel2_outline.png")
-local imageBarrel2 = love.graphics.newImage("images/tankRed_barrel2.png")
+local imageBody = love.graphics.newImage("images/tankBody_dark_outline.png")
+local imageBarrel1 = love.graphics.newImage("images/tankDark_barrel2_outline.png")
+local imageBarrel2 = love.graphics.newImage("images/tankDark_barrel2.png")
 local sndTankShoot = love.audio.newSource("images/fire.wav", "static")
 
--- Function to create a new enemy object
-function NewEnemy(x, y, angle, speed)
+-- Function to create a new enemy static object
+function NewEnemyStatic(x, y, angle, speed)
     local enemy = {}
 
     -- Enemy properties
@@ -21,27 +20,16 @@ function NewEnemy(x, y, angle, speed)
     enemy.rotationSpeed = 2
     enemy.shootSpeed = 200
     enemy.shootRange = 200
-    enemy.state = "patrol"
+    enemy.state = "static"
     enemy.shootTimer = 0
     enemy.shootRate = 1
-    enemy.owner = "normal"
+    enemy.owner = "static"
     enemy.nbrLife = 1
     enemy.free = false
-    enemy.points = 50
+    enemy.points = 25
 
-    -- Function to handle enemy patrol behavior
-    function enemy.Patrol(dt, hero)
-        enemy.Move(dt)
-
-        -- Check for collision with obstacles on the map
-        if map.CheckCollisionObstacle(enemy.x, enemy.y, enemy.radius) then
-            enemy.angle = enemy.angle - math.pi
-            enemy.angleBarrel = enemy.angleBarrel - math.pi
-            enemy.x = enemy.oldX
-            enemy.y = enemy.oldY
-        end
-
-        -- Calculate distance to the hero
+    -- Function to handle enemy static behavior
+    function enemy.Static(dt, hero)
         local targetDist = math.dist(enemy.x, enemy.y, hero.GetPosition())
 
         -- Transition to "shoot" state if the hero is within shooting range
@@ -50,7 +38,7 @@ function NewEnemy(x, y, angle, speed)
         end
     end
 
-    -- Function to handle enemy shooting behavior
+    -- Function to handle enemy shoot behavior
     function enemy.Shoot(dt, hero, bulletManager)
         local targetX, targetY = hero.GetPosition()
         enemy.angleBarrel = math.atan2(targetY - enemy.y, targetX - enemy.x)
@@ -63,30 +51,17 @@ function NewEnemy(x, y, angle, speed)
             love.audio.play(sndTankShoot)
         end
 
-        -- Calculate distance to the hero
+        -- Transition to "static" state if the hero moves out of shooting range
         local targetDist = math.dist(enemy.x, enemy.y, hero.GetPosition())
-
-        -- Transition back to "patrol" state if the hero moves out of shooting range
         if targetDist >= enemy.shootRange + 50 then
-            enemy.state = "patrol"
+            enemy.state = "static"
             enemy.angleBarrel = enemy.angle
         end
     end
 
-    -- Function to move the enemy
-    function enemy.Move(dt)
-        enemy.oldX = enemy.x
-        enemy.oldY = enemy.y
-        local vx = math.cos(enemy.angle) * enemy.moveSpeed
-        local vy = math.sin(enemy.angle) * enemy.moveSpeed
-        enemy.x = enemy.x + vx * dt
-        enemy.y = enemy.y + vy * dt
-    end
-
-    -- Function to update the enemy
     function enemy.Update(dt, hero, bulletManager)
-        if enemy.state == "patrol" then
-            enemy.Patrol(dt, hero)
+        if enemy.state == "static" then
+            enemy.Static(dt, hero)
         elseif enemy.state == "shoot" then
             enemy.Shoot(dt, hero, bulletManager)
         end
@@ -95,7 +70,6 @@ function NewEnemy(x, y, angle, speed)
         end
     end
 
-    -- Function to draw the enemy
     function enemy.Draw()
         love.graphics.draw(imageBody, enemy.x, enemy.y, enemy.angle, 1, 1, imageBody:getWidth() * 0.5,
             imageBody:getHeight() * 0.5)

@@ -1,14 +1,14 @@
 local sceneManager = require("sceneManager")
+local hero = require("hero")
 local sceneMenu = {}
 
 local font = love.graphics.newFont(24)
 local menuOptions = { "New Game", "Quit" }
 local positionCursor = 1
 
-
 function sceneMenu.Draw()
     love.graphics.setFont(font)
-    love.graphics.print("Nom du jeu", 50, 50)
+    love.graphics.print("Attack on Tank", 50, 50)
 
     -- Draw menuOptions
     for i, option in ipairs(menuOptions) do
@@ -22,6 +22,12 @@ function sceneMenu.Draw()
         love.graphics.print(option, 100, 100 + i * 50)
     end
     love.graphics.setColor(255, 255, 255)
+
+    -- Draw highest score
+    local highestScore = hero.GetHighestScore()
+    local highestScoreX = 50
+    local highestScoreY = 500
+    love.graphics.print("Highest Score: " .. highestScore, highestScoreX, highestScoreY)
 end
 
 function sceneMenu.Keypressed(key)
